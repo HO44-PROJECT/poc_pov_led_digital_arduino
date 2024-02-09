@@ -7,9 +7,12 @@
 // Required material: arduino. I'm using a nano
 // A LED with its resistor
 
-#define POV_MICROS 10000 // The maximum amount of time between two effects the eye won't detect any change
+#define POV_MICROS 10000UL // ms. The maximum amount of time between two effects the eye won't detect any change
 
 #define TEST_PIN 4 // Choose the pin you want. Don't forget the resistor. I use 1k
+
+#define LIGHT_UP_CHANGE_TIME_MS 2000UL // ms. The time given to light up
+#define TURN_OFF_CHANGE_TIME_MS 300UL  // ms. The time given to turn off
 
 void setup() {
   pinMode(TEST_PIN, OUTPUT);
@@ -24,22 +27,35 @@ void off() {
 }
 
 void light_up() {
-  for (int i = 0; i < POV_MICROS; i+=50) {
+
+  // Given the total time to light up and the time for a POV effect, compute the number of iterations required to finish the job
+  unsigned int iterations = round(LIGHT_UP_CHANGE_TIME_MS *1000 / POV_MICROS);
+
+  // Withinh each iteration, the delay varies by a value in micro-seconds
+  unsigned int base_delay_micros = round(POV_MICROS / iterations);
+
+  for (unsigned int i = 0, d = 0; i < iterations; i++, d+=base_delay_micros) {
     off();
-    delayMicroseconds(POV_MICROS-i);
+    delayMicroseconds(POV_MICROS-d);
     on();
-    delayMicroseconds(i);
+    delayMicroseconds(d);
   }
 }
 
 void turn_off() {
-  for (int i = POV_MICROS; i > 0; i-=300) {
+
+  // Given the total time to light up and the time for a POV effect, compute the number of iterations required to finish the job
+  unsigned int iterations = round(TURN_OFF_CHANGE_TIME_MS *1000 / POV_MICROS);
+
+  // Withinh each iteration, the delay varies by a value in micro-seconds
+  unsigned int base_delay_micros = round(POV_MICROS / iterations);
+
+  for (unsigned int i = 0, d = 0; i < iterations; i++, d+=base_delay_micros) {
     on();
-    delayMicroseconds(i);
+    delayMicroseconds(POV_MICROS-d);
     off();
-    delayMicroseconds(POV_MICROS-i);
+    delayMicroseconds(d);
   }
-  delay(100);
 }
 
 void loop() {
